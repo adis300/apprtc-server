@@ -586,7 +586,7 @@ class MaleMatchRequestHandler(webapp2.RequestHandler):
       response['roomId'] = male_room_map[user_id]
     else:
       if len(female_waitlist) > 0:
-        female = female_waitlist.keys[0]
+        female = female_waitlist.keys()[0]
         del female_waitlist[female]
         room_id = user_id + "AND" + female
         male_room_map[user_id] = room_id
@@ -608,7 +608,7 @@ class FemaleMatchRequestHandler(webapp2.RequestHandler):
       response['roomId'] = female_room_map[user_id]
     else:
       if len(male_waitlist) > 0:
-        male = male_waitlist.keys[0]
+        male = male_waitlist.keys()[0]
         del male_waitlist[male]
         room_id = male + "AND" + user_id
         female_room_map[user_id] = room_id
