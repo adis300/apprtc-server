@@ -559,6 +559,11 @@ class ParamsPage(webapp2.RequestHandler):
     params = get_room_parameters(self.request, None, None, None)
     self.response.write(json.dumps(params))
 
+# Disi's implementation of match request handler
+class MatchRequestHandler(webapp2.RequestHandler):
+  def get(self, user_id):
+    # params = get_room_parameters(self.request, None, None, None)
+    self.response.write(user_id) #json.dumps(params))
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -569,4 +574,6 @@ app = webapp2.WSGIApplication([
     ('/message/(\w+)/(\w+)', MessagePage),
     ('/params', ParamsPage),
     ('/r/(\w+)', RoomPage),
+    # Disi's implementation of match request handler
+    ('/match/(\w+)', MatchRequestHandler),
 ], debug=True)
