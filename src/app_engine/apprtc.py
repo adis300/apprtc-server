@@ -25,12 +25,10 @@ import compute_page
 import constants
 
 # Disi's implementation of dictionaries for mapping users
-from collections import deque
-
-male_waitlist = deque([])
+male_waitlist = {}
 male_room_map = {}
 
-female_waitlist = deque([])
+female_waitlist = {}
 female_room_map = {}
 room_map = {}
 
@@ -588,15 +586,17 @@ class MaleMatchRequestHandler(webapp2.RequestHandler):
       response['roomId'] = male_room_map[user_id]
     else:
       if len(female_waitlist) > 0:
-        female = female_waitlist.popleft()
-        room_id = user_id + "-" + female
+        female = female_waitlist.keys[0]
+        del female_waitlist[female]
+        room_id = user_id + "AND" + female
         male_room_map[user_id] = room_id
         female_room_map[female] = room_id
         room_map[room_id] = (user_id, female)
         response['matched'] = True
         response['roomId'] = room_id
       else:
-        male_waitlist.append(user_id)
+        if user_id not in male_waitlist:
+          male_waitlist[user_id] = 1
     self.response.write(json.dumps(response)) 
 
 class FemaleMatchRequestHandler(webapp2.RequestHandler):
@@ -607,16 +607,18 @@ class FemaleMatchRequestHandler(webapp2.RequestHandler):
       response['matched'] = True
       response['roomId'] = female_room_map[user_id]
     else:
-      if len(female_waitlist) > 0:
-        male = male_waitlist.popleft()
-        room_id = male + "-" + user_id
+      if len(male_waitlist) > 0:
+        male = male_waitlist.keys[0]
+        del male_waitlist[male]
+        room_id = male + "AND" + user_id
         female_room_map[user_id] = room_id
         male_room_map[male] = room_id
         room_map[room_id] = (male, user_id)
         response['matched'] = True
         response['roomId'] = room_id
       else:
-        female_waitlist.append(user_id)
+        if user_id not in female_waitlist:
+          female_waitlist[user_id] = 1
     self.response.write(json.dumps(response)) 
 
 app = webapp2.WSGIApplication([
