@@ -24,6 +24,17 @@ import analytics_page
 import compute_page
 import constants
 
+# Disi's implementation of dictionaries for mapping users
+from collections import deque
+
+male_waitlist = deque([])
+male_room_map = {}
+
+female_waitlist = deque([])
+female_room_map = {}
+room_map = {}
+
+
 jinja_environment = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)))
 
@@ -411,6 +422,14 @@ def remove_client_from_room(host, room_id, client_id):
           %(client_id, room_id, retries))
       return {'error': None, 'room_state': str(room)}
     retries = retries + 1
+  # Disi's implementation for also removing from maps
+  if room_id in room_map:
+    tup = room_map[room_id]
+    male = tup[0]
+    female = tup[1]
+    room_map.pop[room_id]
+    male_room_map.pop(male, None)
+    female_room_map.pop(female, None)
 
 def save_message_from_client(host, room_id, client_id, message):
   text = None
@@ -560,10 +579,45 @@ class ParamsPage(webapp2.RequestHandler):
     self.response.write(json.dumps(params))
 
 # Disi's implementation of match request handler
-class MatchRequestHandler(webapp2.RequestHandler):
+class MaleMatchRequestHandler(webapp2.RequestHandler):
   def get(self, user_id):
-    # params = get_room_parameters(self.request, None, None, None)
-    self.response.write(user_id) #json.dumps(params))
+    global male_waitlist, male_room_map, room_map
+    response = {'matched': False, 'roomId': ""}
+    if user_id in male_room_map:
+      response['matched'] = True
+      response['roomId'] = male_room_map[user_id]
+    else:
+      if len(female_waitlist) > 0:
+        female = female_waitlist.popleft()
+        room_id = user_id + "-" + female
+        male_room_map[user_id] = room_id
+        female_room_map[female] = room_id
+        room_map[room_id] = (user_id, female)
+        response['matched'] = True
+        response['roomId'] = room_id
+      else:
+        male_waitlist.append(user_id)
+    self.response.write(json.dumps(response)) 
+
+class FemaleMatchRequestHandler(webapp2.RequestHandler):
+  def get(self, user_id):
+    global female_waitlist, female_room_map, room_map
+    response = {'matched': False, 'roomId': ""}
+    if user_id in female_room_map:
+      response['matched'] = True
+      response['roomId'] = female_room_map[user_id]
+    else:
+      if len(female_waitlist) > 0:
+        male = male_waitlist.popleft()
+        room_id = male + "-" + user_id
+        female_room_map[user_id] = room_id
+        male_room_map[male] = room_id
+        room_map[room_id] = (male, user_id)
+        response['matched'] = True
+        response['roomId'] = room_id
+      else:
+        female_waitlist.append(user_id)
+    self.response.write(json.dumps(response)) 
 
 app = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -575,5 +629,6 @@ app = webapp2.WSGIApplication([
     ('/params', ParamsPage),
     ('/r/(\w+)', RoomPage),
     # Disi's implementation of match request handler
-    ('/match/(\w+)', MatchRequestHandler),
+    ('/match/m/(\w+)', MaleMatchRequestHandler),
+    ('/match/f/(\w+)', FemaleMatchRequestHandler),
 ], debug=True)
