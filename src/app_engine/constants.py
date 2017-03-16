@@ -11,7 +11,9 @@ MEMCACHE_RETRY_LIMIT = 100
 
 LOOPBACK_CLIENT_ID = 'LOOPBACK_CLIENT_ID'
 
-TURN_BASE_URL = 'https://computeengineondemand.appspot.com'
+# TURN_BASE_URL = 'https://computeengineondemand.appspot.com'
+# DISI's change
+TURN_BASE_URL = 'https://turn.votebin.com:3478'
 TURN_URL_TEMPLATE = '%s/turn?username=%s&key=%s'
 CEOD_KEY = '4080218913'
 
